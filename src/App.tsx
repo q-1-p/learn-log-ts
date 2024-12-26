@@ -1,7 +1,16 @@
+import React from 'react';
+import { Box, Button } from '@chakra-ui/react';
+
 function App() {
+
+  const handleClick = () => { 
+    alert('Button clicked');
+  };
+
   return (
     <>
-      <h1>Hello World</h1>
+      <Box>This is the Box</Box>
+      <Button onClick={handleClick}>This is the Button</Button>
     </>
   );
 }

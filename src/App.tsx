@@ -14,6 +14,8 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react';
 import { useForm } from "react-hook-form"
 
@@ -25,35 +27,24 @@ type Inputs = {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 function App() {
-  const { handleSubmit } = useForm<Inputs>();
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors },
+    reset
+  } = useForm<Inputs>();
   const [records, setRecords] = useState<Record[]>([]);
-  const [title, setTitle] = useState<string>("");
-  const [time, setTime] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
 
-  const onSubmit = async () => {
-    if(title == ""){
-      alert("内容の入力は必須です")
-      return;
-    }
-    else if(Number.isNaN(time) || time == null || time == undefined){
-      alert("時間の入力は必須です")
-      return;
-    }
-    else if(time < 0){
-      alert("時間は0以上である必要があります")
-      return;
-    }
-
-    await save({ id: "", title: title, time: time });
+  const onSubmit = async (data: Inputs) => {
+    await save({ id: "", title: data.title, time: data.time });
     setLoading(true);
     await sleep(1000);
     const newRecords = await findAll();
     setRecords(newRecords);
     setLoading(false);
-    setTitle("");
-    setTime(0);
+    reset();
     setOpen(false);
   };
 
@@ -79,7 +70,7 @@ function App() {
   if (loading) {
     return (
       <Center h="100vh">
-        <Spinner size="xl" />
+        <Spinner size="xl" role="status" />
       </Center>
     );
   }
@@ -88,7 +79,7 @@ function App() {
     <>
         <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginTop: '20px' }}>学習記録</h1>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div role="table" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             {records.map((record) => (
                 <RecordLabel key={record.id} record={record} onDelete={handleDelete} />
             ))}
@@ -103,24 +94,49 @@ function App() {
 
           <Modal isOpen={open} onClose={() => setOpen(false)}>
             <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>登録フォーム</ModalHeader>
+            <ModalContent maxWidth="800px" maxHeight="600px">
+              <ModalHeader role="modalHeader">新規登録</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px', marginRight: '55px' }}>
-                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
-                  <Input type="text" style={{ width: '200px' }} placeholder="タイトル" value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
+                <FormControl isInvalid={!!errors.title}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px', marginRight: '55px' }}>
+                    <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
+                    <Input
+                      {...register("title", { 
+                        required: "内容の入力は必須です"
+                      })}
+                      type="text"
+                      style={{ width: '200px' }}
+                      placeholder="タイトル"
+                    />
+                    <FormErrorMessage style={{ paddingLeft: '15px' }}>
+                      {errors.title && errors.title.message}
+                    </FormErrorMessage>
+                  </div>
+                </FormControl>
 
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習時間</Text>
-                  <Input type="text" style={{ width: '200px' }} value={time} onChange={(e) => setTime(Number(e.target.value))} />
-                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>時間</Text>
-                </div>
+                <FormControl isInvalid={!!errors.time}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習時間</Text>
+                    <Input
+                      {...register("time", {
+                        required: "時間の入力は必須です",
+                        min: { value: 0, message: "時間は0以上である必要があります" },
+                        valueAsNumber: true
+                      })}
+                      type="number"
+                      style={{ width: '200px' }}
+                    />
+                    <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>時間</Text>
+                    <FormErrorMessage style={{ paddingLeft: '15px' }}>
+                      {errors.time && errors.time.message}
+                    </FormErrorMessage>
+                  </div>
+                </FormControl>
               </ModalBody>
               <ModalFooter>
                 <Button variant="outline" mr={3} onClick={() => setOpen(false)}>キャンセル</Button>
-                <Button onClick={() => handleSubmit(onSubmit)()}>登録</Button>
+                <Button type="submit" onClick={handleSubmit(onSubmit)}>登録</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>

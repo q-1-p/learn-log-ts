@@ -6,6 +6,7 @@ interface DialogContentProps extends ChakraDialog.ContentProps {
   portalled?: boolean
   portalRef?: React.RefObject<HTMLElement>
   backdrop?: boolean
+  children?: React.ReactNode; // children を追加
 }
 
 export const DialogContent = React.forwardRef<

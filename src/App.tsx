@@ -2,6 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { RecordLabel } from './components/domain/record/record-label';
 import { Record, findAll, save } from './infrastructures/repo';
 import { Input, Text, Spinner, Center, Button } from '@chakra-ui/react';
+import {
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
+} from "./components/ui/dialog"
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -10,6 +20,7 @@ function App() {
   const [title, setTitle] = useState<string>("");
   const [time, setTime] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [open, setOpen] = useState(false);
 
   const allTime = (): number => {
     return records.reduce((total, record) => total + record.time, 0);
@@ -40,24 +51,7 @@ function App() {
 
   return (
     <>
-        <br />
-
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
-          <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
-          <Input type="text" style={{ width: '200px' }} placeholder="タイトル" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>　　</Text>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習時間</Text>
-          <Input type="text" style={{ width: '200px' }} value={time} onChange={(e) => setTime(Number(e.target.value))} />
-          <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>時間</Text>
-        </div>
-
-        <br />
-
-        <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>入力されている学習内容：{title}</Text>
-        <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>入力されている学習時間：{time}時間</Text>
+        <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginTop: '20px' }}>学習記録</h1>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             {records.map((record) => (
@@ -69,17 +63,45 @@ function App() {
 
         <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>合計学習時間：{allTime()}/1000(h)</Text>
 
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-          <Button  onClick={async () => {
-            await save({ id: "", title: title, time: time });
-            setLoading(true);
-            await sleep(1000);
-            const newRecords = await findAll();
-            setRecords(newRecords);
-            setLoading(false);
-            setTitle("");
-            setTime(0);
-          }}>登録</Button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <DialogRoot open={open} onOpenChange={setOpen}>
+            <DialogTrigger>
+              <Button>記録追加</Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Dialog Title</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
+                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
+                  <Input type="text" style={{ width: '200px' }} placeholder="タイトル" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>　　</Text>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習時間</Text>
+                  <Input type="text" style={{ width: '200px' }} value={time} onChange={(e) => setTime(Number(e.target.value))} />
+                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>時間</Text>
+                </div>
+              </DialogBody>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>キャンセル</Button>
+                <Button  onClick={async () => {
+                  await save({ id: "", title: title, time: time });
+                  setLoading(true);
+                  await sleep(1000);
+                  const newRecords = await findAll();
+                  setRecords(newRecords);
+                  setLoading(false);
+                  setTitle("");
+                  setTime(0);
+                }}>登録</Button>
+              </DialogFooter>
+              <DialogCloseTrigger />
+            </DialogContent>
+          </DialogRoot>
         </div>
 
     </>

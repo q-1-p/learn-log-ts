@@ -24,6 +24,21 @@ export const save = async (record: Record) => {
     }
 }
 
+export const update = async (recordId: string, title: string, time: number) => {
+    const { error } = await supabase
+        .from("study-record")
+        .update({
+            title: title,
+            time: time
+        })
+        .eq("id", recordId);
+    
+    if (error) {
+        console.error("Error updating record:", error);
+        throw error;
+    }
+}
+
 export const deleteRecord = async (id: string) => {
     const { error } = await supabase
         .from("study-record")

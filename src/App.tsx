@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RecordLabel } from './components/domain/record/record-label';
-import { Record, findAll, save } from './infrastructures/repo';
+import { Record, findAll, save, update, deleteRecord } from './infrastructures/repo';
 import {
   Input,
   Text,
@@ -31,14 +31,16 @@ function App() {
     register, 
     handleSubmit, 
     formState: { errors },
-    reset
+    reset,
+    setValue
   } = useForm<Inputs>();
   const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Record | null>(null);
 
   const onSubmit = async (data: Inputs) => {
-    await save({ id: "", title: data.title, time: data.time });
+    await save({ id: editingRecord?.id || "", title: data.title, time: data.time });
     setLoading(true);
     await sleep(1000);
     const newRecords = await findAll();
@@ -46,13 +48,41 @@ function App() {
     setLoading(false);
     reset();
     setOpen(false);
+    setEditingRecord(null);
+  };
+
+  const onUpdate = async (data: Inputs) => {
+    if (!editingRecord) return;
+    await update(editingRecord.id, data.title, data.time);
+    setLoading(true);
+    await sleep(1000);
+    const newRecords = await findAll();
+    setRecords(newRecords);
+    setLoading(false);
+    reset();
+    setOpen(false);
+    setEditingRecord(null);
+  };
+
+  const handleEdit = (record: Record) => {
+    setEditingRecord(record);
+    setValue("title", record.title);
+    setValue("time", record.time);
+    setOpen(true);
+  };
+
+  const handleOpenNew = () => {
+    setEditingRecord(null);
+    reset();
+    setOpen(true);
   };
 
   const allTime = (): number => {
     return records.reduce((total, record) => total + record.time, 0);
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    await deleteRecord(id);
     setRecords(prev => prev.filter(record => record.id !== id));
   };
   
@@ -81,7 +111,7 @@ function App() {
 
         <div role="table" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             {records.map((record) => (
-                <RecordLabel key={record.id} record={record} onDelete={handleDelete} />
+                <RecordLabel key={record.id} record={record} onDelete={handleDelete} onEdit={handleEdit} />
             ))}
         </div>
 
@@ -90,18 +120,23 @@ function App() {
         <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>合計学習時間：{allTime()}/1000(h)</Text>
 
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-          <Button onClick={() => setOpen(true)}>新規登録</Button>
+          <Button onClick={handleOpenNew}>新規登録</Button>
 
-          <Modal isOpen={open} onClose={() => setOpen(false)}>
+          <Modal isOpen={open} onClose={() => {
+            setOpen(false);
+            setEditingRecord(null);
+            reset();
+          }}>
             <ModalOverlay />
             <ModalContent maxWidth="800px" maxHeight="600px">
-              <ModalHeader role="modalHeader">新規登録</ModalHeader>
+              <ModalHeader role="modalHeader">{editingRecord ? '記録編集' : '新規登録'}</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <FormControl isInvalid={!!errors.title}>
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px', marginRight: '55px' }}>
                     <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
                     <Input
+                      data-testid="title"
                       {...register("title", { 
                         required: "内容の入力は必須です"
                       })}
@@ -119,6 +154,7 @@ function App() {
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習時間</Text>
                     <Input
+                      data-testid="time"
                       {...register("time", {
                         required: "時間の入力は必須です",
                         min: { value: 0, message: "時間は0以上である必要があります" },
@@ -135,8 +171,12 @@ function App() {
                 </FormControl>
               </ModalBody>
               <ModalFooter>
-                <Button variant="outline" mr={3} onClick={() => setOpen(false)}>キャンセル</Button>
-                <Button type="submit" onClick={handleSubmit(onSubmit)}>登録</Button>
+                <Button variant="outline" mr={3} onClick={() => {
+                  setOpen(false);
+                  setEditingRecord(null);
+                  reset();
+                }}>キャンセル</Button>
+                <Button type="submit" onClick={editingRecord ? handleSubmit(onUpdate) : handleSubmit(onSubmit)}>{editingRecord ? '更新' : '登録'}</Button>
               </ModalFooter>
             </ModalContent>
           </Modal>

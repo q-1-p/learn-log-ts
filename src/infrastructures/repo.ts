@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  "https://fobimptfejnrqpsrzoyw.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvYmltcHRmZWpucnFwc3J6b3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM2NDI0OTYsImV4cCI6MjA0OTIxODQ5Nn0.hCbJzIR4nwKmXY08toq4BHyIXYPFMw_MJ8-ka0c6cF4"
 )
 
 export const findAll = async (): Promise<Record[]> => {

@@ -4,7 +4,6 @@ import { Record, findAll, save } from './infrastructures/repo';
 import { Input, Text, Spinner, Center, Button } from '@chakra-ui/react';
 import {
   DialogBody,
-  DialogCloseTrigger,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -21,6 +20,32 @@ function App() {
   const [time, setTime] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
+  
+
+  const handleSave = async () => {
+    if(title == ""){
+      alert("内容の入力は必須です")
+      return;
+    }
+    else if(Number.isNaN(time) || time == null || time == undefined){
+      alert("時間の入力は必須です")
+      return;
+    }
+    else if(time < 0){
+      alert("時間は0以上である必要があります")
+      return;
+    }
+
+    await save({ id: "", title: title, time: time });
+    setLoading(true);
+    await sleep(1000);
+    const newRecords = await findAll();
+    setRecords(newRecords);
+    setLoading(false);
+    setTitle("");
+    setTime(0);
+    setOpen(false);
+  };
 
   const allTime = (): number => {
     return records.reduce((total, record) => total + record.time, 0);
@@ -71,7 +96,7 @@ function App() {
 
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Dialog Title</DialogTitle>
+                <DialogTitle>登録フォーム</DialogTitle>
               </DialogHeader>
               <DialogBody>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
@@ -88,18 +113,8 @@ function App() {
               </DialogBody>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>キャンセル</Button>
-                <Button  onClick={async () => {
-                  await save({ id: "", title: title, time: time });
-                  setLoading(true);
-                  await sleep(1000);
-                  const newRecords = await findAll();
-                  setRecords(newRecords);
-                  setLoading(false);
-                  setTitle("");
-                  setTime(0);
-                }}>登録</Button>
+                <Button onClick={handleSave}>登録</Button>
               </DialogFooter>
-              <DialogCloseTrigger />
             </DialogContent>
           </DialogRoot>
         </div>

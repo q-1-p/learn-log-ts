@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { RecordLabel } from './components/domain/record/record-label';
 import { Record, findAll, save } from './infrastructures/repo';
-import { Input, Text, Spinner, Center, Button } from '@chakra-ui/react';
 import {
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
-  DialogTrigger,
-} from "./components/ui/dialog"
+  Input,
+  Text,
+  Spinner,
+  Center,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+} from '@chakra-ui/react';
 import { useForm } from "react-hook-form"
 
 type Inputs = {
@@ -34,7 +38,7 @@ function App() {
       return;
     }
     else if(Number.isNaN(time) || time == null || time == undefined){
-      alert("時間の入力は必��です")
+      alert("時間の入力は必須です")
       return;
     }
     else if(time < 0){
@@ -95,20 +99,17 @@ function App() {
         <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>合計学習時間：{allTime()}/1000(h)</Text>
 
         <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-          <DialogRoot open={open} onOpenChange={setOpen}>
-            <DialogTrigger>
-              <Button>記録追加</Button>
-            </DialogTrigger>
+          <Button onClick={() => setOpen(true)}>新規登録</Button>
 
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>登録フォーム</DialogTitle>
-              </DialogHeader>
-              <DialogBody>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px' }}>
+          <Modal isOpen={open} onClose={() => setOpen(false)}>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>登録フォーム</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px', marginRight: '55px' }}>
                   <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>学習記録</Text>
                   <Input type="text" style={{ width: '200px' }} placeholder="タイトル" value={title} onChange={(e) => setTitle(e.target.value)} />
-                  <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>　　</Text>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -116,13 +117,13 @@ function App() {
                   <Input type="text" style={{ width: '200px' }} value={time} onChange={(e) => setTime(Number(e.target.value))} />
                   <Text style={{ fontSize: '20px', fontWeight: 'bold', paddingRight: '15px' }}>時間</Text>
                 </div>
-              </DialogBody>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>キャンセル</Button>
-                <Button type="button" onClick={() => handleSubmit(onSubmit)()}>登録</Button>
-              </DialogFooter>
-            </DialogContent>
-          </DialogRoot>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="outline" mr={3} onClick={() => setOpen(false)}>キャンセル</Button>
+                <Button onClick={() => handleSubmit(onSubmit)()}>登録</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </form>
 
     </>

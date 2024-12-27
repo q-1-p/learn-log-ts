@@ -11,24 +11,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./components/ui/dialog"
+import { useForm } from "react-hook-form"
+
+type Inputs = {
+  title: string;
+  time: number;
+};
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 function App() {
+  const { handleSubmit } = useForm<Inputs>();
   const [records, setRecords] = useState<Record[]>([]);
   const [title, setTitle] = useState<string>("");
   const [time, setTime] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
-  
 
-  const handleSave = async () => {
+  const onSubmit = async () => {
     if(title == ""){
       alert("内容の入力は必須です")
       return;
     }
     else if(Number.isNaN(time) || time == null || time == undefined){
-      alert("時間の入力は必須です")
+      alert("時間の入力は必��です")
       return;
     }
     else if(time < 0){
@@ -88,7 +94,7 @@ function App() {
 
         <Text style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', paddingRight: '15px' }}>合計学習時間：{allTime()}/1000(h)</Text>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
           <DialogRoot open={open} onOpenChange={setOpen}>
             <DialogTrigger>
               <Button>記録追加</Button>
@@ -113,11 +119,11 @@ function App() {
               </DialogBody>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>キャンセル</Button>
-                <Button onClick={handleSave}>登録</Button>
+                <Button type="button" onClick={() => handleSubmit(onSubmit)()}>登録</Button>
               </DialogFooter>
             </DialogContent>
           </DialogRoot>
-        </div>
+        </form>
 
     </>
   );
